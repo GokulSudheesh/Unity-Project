@@ -2,10 +2,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class EnemyControl : MonoBehaviour
 {
     GameObject player;
+    NavMeshAgent agent;
     public float speed = 2f;
     float proximity;
     bool isChase = false;
@@ -14,6 +16,7 @@ public class EnemyControl : MonoBehaviour
     void Start()
     {
         player = GameObject.Find("Player");
+        agent = GetComponent<NavMeshAgent>();
     }
 
     // Update is called once per frame
@@ -22,12 +25,13 @@ public class EnemyControl : MonoBehaviour
         checkProximity();
         if (isChase)
         {
-            // Add a search algorithm
+            // Add a search algorithm UnityEngine.AI :)
             if (inProximity) 
             {
                 transform.LookAt(player.transform);
-            }            
-            transform.Translate(Vector3.forward * Time.deltaTime * speed);
+            }
+            agent.SetDestination(player.transform.position);
+            //transform.Translate(Vector3.forward * Time.deltaTime * speed);
         }
         
         //Debug.Log(proximity);
