@@ -12,11 +12,16 @@ public class EnemyControl : MonoBehaviour
     float proximity;
     bool isChase = false;
     bool inProximity = false;
-    // Start is called before the first frame update
-    void Start()
+    //Awake is called when the script instance is being loaded.
+    private void Awake()
     {
         player = GameObject.Find("Player");
         agent = GetComponent<NavMeshAgent>();
+
+    }
+    // Start is called before the first frame update
+    void Start()
+    {
     }
 
     // Update is called once per frame
