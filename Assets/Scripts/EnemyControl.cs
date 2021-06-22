@@ -18,6 +18,7 @@ public class EnemyControl : MonoBehaviour
     bool isChase = false;
     bool inProximity = false;
     float coolDownTimer;
+    bool inCooldown = false;
     Vector3 destination;
     Vector3 prePos;
     Vector3[] destinations_path;
@@ -75,14 +76,10 @@ public class EnemyControl : MonoBehaviour
         if (pathCompleted < 1)
         {
             // Cooldown
-            if (coolDownTimer > 0)
+            cooldown();
+            if (!inCooldown)
             {
-                coolDownTimer -= Time.deltaTime;
-            }
-            else
-            {
-                dest_i = (dest_i + 1)%destinations_path.Length;
-                coolDownTimer = coolDown;
+                dest_i = (dest_i + 1) % destinations_path.Length;
             }
         }
     }
@@ -108,17 +105,27 @@ public class EnemyControl : MonoBehaviour
                 // When the random destination is outside the walls the enemy might get stuck. DO: (simple fix but change this later!)
                 // pathCompleted == 0 -> If the enemy reached the destination compute a new random position 
                 // Cooldown
-                if (coolDownTimer > 0)
-                {
-                    coolDownTimer -= Time.deltaTime;
-                }
-                else
+                cooldown();
+                if (!inCooldown)
                 {
                     isRoam = false;
-                    coolDownTimer = coolDown;
                 }
             }
             prePos = transform.position;
+        }
+    }
+
+    private void cooldown()
+    {
+        inCooldown = true;
+        if (coolDownTimer > 0)
+        {
+            coolDownTimer -= Time.deltaTime;
+        }
+        else
+        {
+            coolDownTimer = coolDown;
+            inCooldown = false;
         }
     }
 
