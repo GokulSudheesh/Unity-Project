@@ -12,11 +12,13 @@ public class EnemyControl : MonoBehaviour
     //public float speed = 2f;
     [SerializeField] float maxRoamDist = 25f;
     [SerializeField] float coolDown = 5f;
+    [SerializeField] float viewRadius = 12.5f;
     float proximity;
     bool gameOver = false;
     bool isRoam = false;
     bool isChase = false;
     bool inProximity = false;
+    bool inRange = false;
     float coolDownTimer;
     bool inCooldown = false;
     Vector3 destination;
@@ -41,18 +43,20 @@ public class EnemyControl : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        checkProximity();
+        //isChase = lineOfSight() && checkProximity();
+        isChase = lineOfSightAngle();
         if (isChase)
         {
             // Add a search algorithm UnityEngine.AI :)
-            if (inProximity)
+            /*if (inProximity) 
             {
                 transform.LookAt(player.transform);
-            }
+            }*/
             destination = player.transform.position;
             agent.SetDestination(destination);
-            pathCompleted = Vector3.Distance(transform.position, destination);
-            Debug.Log(pathCompleted);
+            //pathCompleted = Vector3.Distance(transform.position, destination);
+            pathCompleted = agent.remainingDistance;
+            Debug.Log("Chase " + pathCompleted);
             if (pathCompleted <= 1)
             {
                 Debug.Log("Game Over!");
@@ -63,15 +67,14 @@ public class EnemyControl : MonoBehaviour
         {
             roam();
         }
-
-        //Debug.Log(proximity);
     }
 
     private void roam_path()
     {
         destination = destinations_path[dest_i];
         agent.SetDestination(destination);
-        pathCompleted = Vector3.Distance(transform.position, destination);
+        //pathCompleted = Vector3.Distance(transform.position, destination);
+        pathCompleted = agent.remainingDistance;
         Debug.Log(pathCompleted);
         if (pathCompleted < 1)
         {
@@ -90,14 +93,14 @@ public class EnemyControl : MonoBehaviour
         {
             // Calculate a new random posiiton when the enemy is not roaming
             destination = new Vector3(Random.Range(-maxRoamDist, maxRoamDist), transform.position.y, Random.Range(-maxRoamDist, maxRoamDist));
-            //destination = new Vector3(21.02f, 0.3015547f, -4.84f);
             isRoam = true;
         }
         if (isRoam)
         {
             // Set the destination to that random destination
             agent.SetDestination(destination);
-            pathCompleted = Vector3.Distance(transform.position, destination);
+            //pathCompleted = Vector3.Distance(transform.position, destination);
+            pathCompleted = agent.remainingDistance;
             Debug.Log(pathCompleted);
             if (pathCompleted < 1 || prePos == transform.position)
             {
@@ -129,18 +132,51 @@ public class EnemyControl : MonoBehaviour
         }
     }
 
-    private void checkProximity()
+    private bool checkProximity()
     {
         proximity = Vector3.Distance(transform.position, player.transform.position);
-        if (proximity < 12.5f)
+        if (proximity < viewRadius)
         {
-            isChase = true;
             inProximity = true;
+            return true;
         }
         else
         {
-            isChase = false;
             inProximity = false;
+            return false;
+        }
+    }
+
+    private bool lineOfSight()
+    {
+        NavMeshHit hit;
+        if (!agent.Raycast(player.transform.position, out hit))
+        {
+            //print("Visible");
+            return true;
+        }
+        else
+        {
+            //print("Not Visible");
+            return false;
+        }
+    }
+
+    private bool lineOfSightAngle()
+    {
+        Vector3 direction = player.transform.position - transform.position;
+        RaycastHit hit;
+        inRange = Vector3.Angle(direction, transform.forward) <= 80f;
+
+        if (Physics.Raycast(transform.position, direction, out hit) && hit.transform.gameObject.name == "Player" && inRange)
+        {
+            //print("Visible");
+            return true;
+        }
+        else
+        {
+            //print("Not Visible");
+            return false;
         }
     }
 }
