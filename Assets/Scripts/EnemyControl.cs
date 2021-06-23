@@ -56,7 +56,7 @@ public class EnemyControl : MonoBehaviour
             agent.SetDestination(destination);
             //pathCompleted = Vector3.Distance(transform.position, destination);
             pathCompleted = agent.remainingDistance;
-            Debug.Log(pathCompleted);
+            Debug.Log("Chase "+pathCompleted);
             if (pathCompleted <= 1)
             {
                 Debug.Log("Game Over!");
