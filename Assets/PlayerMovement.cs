@@ -27,10 +27,20 @@ public class PlayerMovement : MonoBehaviour
         
         rb.AddForce (movementDirection * speed);
         
+        //Simple code to make the character sprint
+        
+        
+        if (Input.GetKey (KeyCode.Z))
+        	
+        		transform.Translate(movementDirection * (speed*2) * Time.deltaTime, Space.World);
+        		
+        		
+        		
+        
         if (onGround){
         
         	if (Input.GetButtonDown("Jump"))
-        	{
+        		{
         		//Jump is the spacebar
         		//Add force to a Rigidbody along the direction of the force vector
         		rb.AddForce(Vector3.up * jumpSpeed); //This force is added to each frame
