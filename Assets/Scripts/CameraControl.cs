@@ -16,6 +16,7 @@ public class CameraControl : MonoBehaviour
     private void Awake()
     {
         enemy = GameObject.Find("Enemy");
+        transform.position = new Vector3(enemy.transform.position.x, enemy.transform.position.y + 1, enemy.transform.position.z);
         offsetPos = new Vector3(transform.position.x - enemy.transform.position.x,
             transform.position.y - enemy.transform.position.y, transform.position.z - enemy.transform.position.z);
     }
