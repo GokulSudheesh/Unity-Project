@@ -96,8 +96,7 @@ public class EnemyControl : MonoBehaviour
                     if (trapCount > 0)
                     {
                         // Spawn a trap game object
-                        trapCount--;
-                        Instantiate(trap, new Vector3(transform.position.x, trap.transform.position.y, transform.position.z), Quaternion.identity);
+                        spawnTrap();
                     }
                     investigate = false;
                 }
@@ -106,6 +105,15 @@ public class EnemyControl : MonoBehaviour
         else
         {
             roam();
+        }
+    }
+
+    private void spawnTrap()
+    {
+        if(Random.Range(0, 100) > 50) // 50 - 50 probability to spawn the trap
+        {
+            trapCount--;
+            Instantiate(trap, new Vector3(transform.position.x, transform.position.y - 1.166667f, transform.position.z), Quaternion.identity);
         }
     }
 
