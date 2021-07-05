@@ -9,6 +9,8 @@ public class EnemyControl : MonoBehaviour
 {
     GameObject player;
     NavMeshAgent agent;
+    GameObject trap;
+    int trapCount = 10;
     [SerializeField] float speed = 3.5f;
     [SerializeField] float sprintSpeed = 5.0f;
     [SerializeField] float maxRoamDist = 50f;
@@ -38,6 +40,7 @@ public class EnemyControl : MonoBehaviour
     private void Awake()
     {
         player = GameObject.Find("Player");
+        trap = GameObject.Find("Trap");
         agent = GetComponent<NavMeshAgent>();
         agent.speed = speed;
         chaseSpeed = sprintSpeed;
@@ -90,6 +93,12 @@ public class EnemyControl : MonoBehaviour
                 cooldown();
                 if (!inCooldown)
                 {
+                    if (trapCount > 0)
+                    {
+                        // Spawn a trap game object
+                        trapCount--;
+                        Instantiate(trap, new Vector3(transform.position.x, trap.transform.position.y, transform.position.z), Quaternion.identity);
+                    }
                     investigate = false;
                 }
             }
