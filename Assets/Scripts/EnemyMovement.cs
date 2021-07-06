@@ -42,7 +42,6 @@ public class EnemyMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //isChase = lineOfSight() && checkProximity();
         isChase = lineOfSightAngle() || checkProximity();
         if (isChase)
         {
@@ -136,18 +135,19 @@ public class EnemyMovement : MonoBehaviour
         proximity = Vector3.Distance(transform.position, player.transform.position);
         if (proximity < viewRadius)
         {
-            inProximity = true;
-            return true;
+            inProximity = hidden();
+            return inProximity;
         }
         else
         {
             inProximity = false;
-            return false;
+            return inProximity;
         }
     }
 
-    private bool lineOfSight()
+    private bool hidden()
     {
+        // Blocked by enemy's vision (walls / other obstacles)
         NavMeshHit hit;
         if (!agent.Raycast(player.transform.position, out hit))
         {
