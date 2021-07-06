@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -9,16 +10,22 @@ public class PlayerMovement : MonoBehaviour
     private Rigidbody rb;
     [SerializeField] private float jumpSpeed; //Calculate the jump speed
     private bool onGround;
-    
-    
+    private float coolDown = 6;
+    [SerializeField] private float coolDownTimer;
+    [SerializeField] private float sprintingTimer;
+    private float sprintTime = 6;
+    public Text playerStat;
+
     void Start() {
     	 rb = GetComponent<Rigidbody> (); //get the rigidbody component of the current object the script is attached to
     	 onGround = true;
+    	 playerStat = GetComponent<Text>();
     }
 
     // Update is called once per frame
     void Update()
-    {
+    {	
+    	
         float horizontalInput = Input.GetAxis("Horizontal");//-1 or 1 value is inputted to the horizontal axis. By default left and right arrow keys.
         float verticalInput = Input.GetAxis("Vertical"); //Mapped to the up and down arrow key
         
@@ -28,15 +35,32 @@ public class PlayerMovement : MonoBehaviour
         rb.AddForce (movementDirection * speed);
         
         //Simple code to make the character sprint
+        if (Input.GetKey(KeyCode.Z)){
+       
+        		if (sprintingTimer > 0 && coolDownTimer == coolDown){
+        			transform.Translate(movementDirection * (speed*2) * Time.deltaTime, Space.World);
+        			sprintingTimer -= Time.deltaTime;
+        		}		
+        }
         
+        if (sprintingTimer < 0){
+        		
+		coolDownTimer -= Time.deltaTime;
         
-        if (Input.GetKey (KeyCode.Z))
-        	
-        		transform.Translate(movementDirection * (speed*2) * Time.deltaTime, Space.World);
-        		
-        		
-        		
+        }
         
+        if (coolDownTimer < 0)
+        {
+        	coolDownTimer = coolDown;
+        	sprintingTimer = sprintTime;
+        }
+      
+        //End of Character sprint code
+        //Need to find way to add stamina at any moment
+        
+    		
+    	playerStat.text = sprintingTimer.ToString();
+  		
         if (onGround){
         
         	if (Input.GetButtonDown("Jump"))
@@ -63,6 +87,7 @@ public class PlayerMovement : MonoBehaviour
         	
         	
         }
+        	
     }
     
     private void OnCollisionEnter(Collision collision){
