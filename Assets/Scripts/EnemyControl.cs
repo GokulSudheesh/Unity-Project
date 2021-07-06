@@ -15,13 +15,18 @@ public class EnemyControl : MonoBehaviour
     [SerializeField] float viewRadius = 12.5f;
     float proximity;
     bool gameOver = false;
+    /* Enemy States */
     bool isRoam = false;
     bool isChase = false;
+    bool investigate = false;
+    /* Player Detection */
     bool inProximity = false;
     bool inRange = false;
+    /* Cooldown to pause while roaming */
     float coolDownTimer;
     bool inCooldown = false;
     Vector3 destination;
+    Vector3 lastknownLoc;
     Vector3 prePos;
     Vector3[] destinations_path;
     int dest_i = 0;
@@ -43,8 +48,7 @@ public class EnemyControl : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //isChase = lineOfSight() && checkProximity();
-        isChase = lineOfSightAngle();
+        isChase = lineOfSightAngle() || checkProximity();
         if (isChase)
         {
             // Add a search algorithm UnityEngine.AI :)
@@ -62,6 +66,23 @@ public class EnemyControl : MonoBehaviour
                 Debug.Log("Game Over!");
                 gameOver = true;
             }
+            investigate = true;
+            lastknownLoc = player.transform.position;
+        }
+        else if (investigate)
+        {
+            agent.SetDestination(lastknownLoc);
+            pathCompleted = agent.remainingDistance;
+            Debug.Log("Investigate " + pathCompleted);
+            if (pathCompleted < 1)
+            {
+                // Cooldown
+                cooldown();
+                if (!inCooldown)
+                {
+                    investigate = false;
+                }
+            }
         }
         else
         {
@@ -75,7 +96,7 @@ public class EnemyControl : MonoBehaviour
         agent.SetDestination(destination);
         //pathCompleted = Vector3.Distance(transform.position, destination);
         pathCompleted = agent.remainingDistance;
-        Debug.Log(pathCompleted);
+        Debug.Log("Roam " + pathCompleted);
         if (pathCompleted < 1)
         {
             // Cooldown
@@ -101,7 +122,7 @@ public class EnemyControl : MonoBehaviour
             agent.SetDestination(destination);
             //pathCompleted = Vector3.Distance(transform.position, destination);
             pathCompleted = agent.remainingDistance;
-            Debug.Log(pathCompleted);
+            Debug.Log("Roam " + pathCompleted);
             if (pathCompleted < 1 || prePos == transform.position)
             {
                 // prePos == currentPos -> just to check if the enemy is stuck.
@@ -137,18 +158,19 @@ public class EnemyControl : MonoBehaviour
         proximity = Vector3.Distance(transform.position, player.transform.position);
         if (proximity < viewRadius)
         {
-            inProximity = true;
-            return true;
+            inProximity = hidden();
+            return inProximity;
         }
         else
         {
             inProximity = false;
-            return false;
+            return inProximity;
         }
     }
 
-    private bool lineOfSight()
+    private bool hidden()
     {
+        // Blocked by enemy's vision (walls / other obstacles)
         NavMeshHit hit;
         if (!agent.Raycast(player.transform.position, out hit))
         {
