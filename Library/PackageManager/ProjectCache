@@ -5,7 +5,7 @@ m_ProjectFiles:
     m_ContentTrackingEnabled: 1
     m_ModificationDate:
       serializedVersion: 2
-      ticks: 637607161100000000
+      ticks: 637612324990000000
     m_Hash: 2679528418
   m_LockFileStatus:
     m_FilePath: /home/yoshi/Desktop/Projects/Unity/alpha/Packages/packages-lock.json
@@ -13,7 +13,7 @@ m_ProjectFiles:
     m_ContentTrackingEnabled: 1
     m_ModificationDate:
       serializedVersion: 2
-      ticks: 637607161100000000
+      ticks: 637612324990000000
     m_Hash: 1690475856
 m_EmbeddedPackageManifests:
   m_ManifestsStatus: {}
