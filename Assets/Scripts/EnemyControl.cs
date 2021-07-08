@@ -61,17 +61,8 @@ public class EnemyControl : MonoBehaviour
         {
             agent.speed = chaseSpeed;
             sprint();
-            // Add a search algorithm UnityEngine.AI :)
-            /*if (inProximity) 
-            {
-                transform.LookAt(player.transform);
-            }*/
-            destination = player.transform.position;
-            agent.SetDestination(destination);
-            //pathCompleted = Vector3.Distance(transform.position, destination);
-            pathCompleted = agent.remainingDistance;
-            Debug.Log("Chase "+pathCompleted);
-            if (pathCompleted <= 1)
+
+            if (go_to(player.transform.position, "Chase"))
             {
                 Debug.Log("Game Over!");
                 gameOver = true;
@@ -84,10 +75,7 @@ public class EnemyControl : MonoBehaviour
             agent.speed = speed;
             chaseSpeed = sprintSpeed;
             sprintCoolDown = 10f;
-            agent.SetDestination(lastknownLoc);
-            pathCompleted = agent.remainingDistance;
-            Debug.Log("Investigate " + pathCompleted);
-            if (pathCompleted < 1)
+            if (go_to(lastknownLoc, "Investigate"))
             {
                 // Cooldown
                 cooldown();
@@ -106,6 +94,22 @@ public class EnemyControl : MonoBehaviour
         {
             roam();
         }
+    }
+
+    private bool go_to(Vector3 dest, String state)
+    {
+        // Returns true when the enemy gets stuck or completes the path
+        destination = dest;
+        agent.SetDestination(destination);
+        //pathCompleted = Vector3.Distance(transform.position, destination);
+        pathCompleted = agent.remainingDistance;
+        Debug.Log(state + " " + pathCompleted);
+        if (pathCompleted <= 1 || prePos == transform.position)
+        {
+            return true;
+        }
+        prePos = transform.position;
+        return false;
     }
 
     private void spawnTrap()
@@ -140,12 +144,7 @@ public class EnemyControl : MonoBehaviour
 
     private void roam_path()
     {
-        destination = destinations_path[dest_i];
-        agent.SetDestination(destination);
-        //pathCompleted = Vector3.Distance(transform.position, destination);
-        pathCompleted = agent.remainingDistance;
-        Debug.Log("Roam "+pathCompleted);
-        if (pathCompleted < 1)
+        if (go_to(destinations_path[dest_i], "Roam"))
         {
             // Cooldown
             cooldown();
@@ -166,24 +165,14 @@ public class EnemyControl : MonoBehaviour
         }
         if (isRoam)
         {
-            // Set the destination to that random destination
-            agent.SetDestination(destination);
-            //pathCompleted = Vector3.Distance(transform.position, destination);
-            pathCompleted = agent.remainingDistance;
-            Debug.Log("Roam "+pathCompleted);
-            if (pathCompleted < 1 || prePos == transform.position)
+            if (go_to(destination, "Roam"))
             {
-                // prePos == currentPos -> just to check if the enemy is stuck.
-                // When the random destination is outside the walls the enemy might get stuck. DO: (simple fix but change this later!)
-                // pathCompleted == 0 -> If the enemy reached the destination compute a new random position 
-                // Cooldown
                 cooldown();
                 if (!inCooldown)
                 {
                     isRoam = false;
                 }
             }
-            prePos = transform.position;
         }
     }
 
