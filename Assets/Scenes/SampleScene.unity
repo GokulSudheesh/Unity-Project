@@ -3668,15 +3668,13 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a6da6d7ec1bd3945db56431c538463bc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   mainCamera: {fileID: 963194227}
-  hidingCamera_locker: {fileID: 1489284479}
-  hidingCamera_bed: {fileID: 1284663357}
-  isHiding: 0
+  hidingCamera: {fileID: 0}
   player: {fileID: 652503276}
 --- !u!114 &963194232
 MonoBehaviour:
@@ -3700,13 +3698,15 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a14bb835cf2ffd14c9dc71eea96cec10, type: 3}
+  m_Script: {fileID: 11500000, guid: f31e46e0836e5784dbfd88882d156a95, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   mainCamera: {fileID: 963194227}
-  hidingCamera: {fileID: 1284663357}
+  hidingCamera_locker: {fileID: 1489284479}
+  hidingCamera_bed: {fileID: 1284663357}
+  isHiding: 0
   player: {fileID: 652503276}
 --- !u!1 &994493354
 GameObject:
