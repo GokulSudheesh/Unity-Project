@@ -19,6 +19,7 @@ public class EnemyControl : MonoBehaviour
     float proximity;
     bool gameOver = false;
     /* Enemy Sates */
+    string enemy_state;
     bool isRoam = false;
     bool isChase = false;
     bool investigate = false;
@@ -34,6 +35,8 @@ public class EnemyControl : MonoBehaviour
     Vector3[] destinations_path;
     int dest_i = 0;
     float pathCompleted;
+    /* Player hiding */
+    Hide hide_script;
     // Awake is called when the script instance is being loaded.
     private void Awake()
     {
@@ -44,6 +47,8 @@ public class EnemyControl : MonoBehaviour
         prePos = transform.position;
         coolDownTimer = coolDown;
         destinations_path = new[] { new Vector3(36f, 1f, 18.7f), new Vector3(4.1f, 1f, 40.9f), new Vector3(20f, 1f, 4.3f) };
+        GameObject camObject = GameObject.Find("Main Camera");
+        hide_script = camObject.GetComponent<Hide>();
     }
     // Start is called before the first frame update
     void Start()
@@ -53,37 +58,52 @@ public class EnemyControl : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        isChase = lineOfSightAngle() || checkProximity();
+        isChase = (lineOfSightAngle() || checkProximity()) && !hide_script.isHiding; //Player is in range and not hiding.
+        if (hide_script.isHiding && enemy_state == "Chase")
+        {
+            isChase = true; // Kick the fucker out is they hide during a chase
+        }
         if (isChase)
         {
+            enemy_state = "Chase";
             agent.speed = chaseSpeed;
             sprint();
 
-            if (go_to(player.transform.position, "Chase"))
+            if (go_to(player.transform.position, enemy_state))
             {
-                Debug.Log("Game Over!");
-                gameOver = true;
+                if (hide_script.isHiding)
+                {
+                    // If the player is hiding kick them out
+                    hide_script.get_out();
+                }
+                else
+                {
+                    Debug.Log("Game Over!");
+                    gameOver = true;
+                }
             }
             investigate = true;
             lastknownLoc = player.transform.position;
         }
         else if (investigate)
         {
+            enemy_state = "Investigate";
             agent.speed = speed;
             chaseSpeed = sprintSpeed;
             sprintCoolDown = 10f;
-            if (go_to(lastknownLoc, "Investigate"))
-            {
+            if (go_to(lastknownLoc, enemy_state))
+            {                
                 // Cooldown
                 cooldown();
                 if (!inCooldown)
                 {
                     investigate = false;
-                }
+                }                
             }
         }
         else
         {
+            enemy_state = "Roam";
             roam();
         }
     }
@@ -127,7 +147,7 @@ public class EnemyControl : MonoBehaviour
 
     private void roam_path()
     {
-        if (go_to(destinations_path[dest_i], "Roam"))
+        if (go_to(destinations_path[dest_i], enemy_state))
         {
             // Cooldown
             cooldown();
@@ -148,7 +168,7 @@ public class EnemyControl : MonoBehaviour
         }
         if (isRoam)
         {
-            if (go_to(destination, "Roam"))
+            if (go_to(destination, enemy_state))
             {
                 cooldown();
                 if (!inCooldown)
