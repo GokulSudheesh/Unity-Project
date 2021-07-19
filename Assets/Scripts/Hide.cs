@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Hide : MonoBehaviour
 {
@@ -15,11 +16,14 @@ public class Hide : MonoBehaviour
     private string hit_tag;
     
     [SerializeField] GameObject player;
+
+    GameObject hide_prompt;
     
     // Start is called before the first frame update
     void Start()
     {
         mainCamera.GetComponent<Camera>().enabled = true;
+        hide_prompt = GameObject.Find("Hide-Prompt");
     }
 
     // Update is called once per frame
@@ -28,26 +32,27 @@ public class Hide : MonoBehaviour
         RaycastHit hit;
         Vector3 fwd;
         fwd = transform.TransformDirection(Vector3.forward);
-        
+
         if(Physics.Raycast(transform.position, fwd, out hit, rayLength))
         {
             hit_tag = hit.collider.gameObject.name; // Get the name of the object
 
             if ((hit_tag.Split('-')[0] == "Hide") && isHiding == false)
-        	{
-                hidingCamera = getCam(hit_tag.Split('-')[1]);
+        	{                
                 guiShow = true;
         		
         		if(Input.GetKeyDown("x"))
         		{
-        			//Disable Player
-        			player.SetActive(false);
-        			
-        		
-        			//Change Cameras
-        			mainCamera.GetComponent<Camera>().enabled = false;
+                    guiShow = false;
+                    // Get the camera
+                    hidingCamera = getCam(hit_tag.Split('-')[1]);
+                    //Disable Player
+                    player.SetActive(false);
+                    
+                    //Change Cameras
+                    mainCamera.GetComponent<Camera>().enabled = false;
         			hidingCamera.GetComponent<Camera>().enabled = true;
-        			
+
         			StartCoroutine(Wait());
         		}
         	}
@@ -60,11 +65,21 @@ public class Hide : MonoBehaviour
         
         if (isHiding == true)
         {
+            // Get out prompt
+            hide_prompt.GetComponent<Text>().text = "X: Get out";
+            guiShow = true;
         	if(Input.GetKeyDown("x"))
         	{
-                get_out();        		
-        	}
+                get_out();
+                guiShow = false;
+            }
         }
+        else
+        {
+            // Hiding prompt
+            hide_prompt.GetComponent<Text>().text = "X: Hide";
+        }
+        onGUI();
     }
 
     private Camera getCam(string obj_name)
@@ -89,14 +104,10 @@ public class Hide : MonoBehaviour
     {
     	yield return new WaitForSeconds(0.5f);
     	isHiding = true;
-    	guiShow = false;
     }
     
     void onGUI()
     {
-    	if(guiShow == true)
-    	{
-    		GUI.Box(new Rect(Screen.width / 2, Screen.height / 2, 100, 25), "Hide Inside?");
-    	}
+        hide_prompt.SetActive(guiShow);
     }
 }
