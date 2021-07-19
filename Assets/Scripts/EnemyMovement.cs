@@ -9,30 +9,46 @@ public class EnemyMovement : MonoBehaviour
 {
     GameObject player;
     NavMeshAgent agent;
-    //public float speed = 2f;
+    [SerializeField] float speed = 3.5f;
+    [SerializeField] float sprintSpeed = 5.0f;
+    //[SerializeField] float maxRoamDist = 25f;
     [SerializeField] float coolDown = 5f;
     [SerializeField] float viewRadius = 15f;
+    float sprintCoolDown = 10f;
+    float chaseSpeed;
     float proximity;
     bool gameOver = false;
+    /* Enemy Sates */
+    string enemy_state;
     bool isRoam = false;
     bool isChase = false;
+    bool investigate = false;
+    /* Player Detection */
     bool inProximity = false;
     bool inRange = false;
+    /* Cooldown to pause while roaming */
     float coolDownTimer;
     bool inCooldown = false;
     Vector3 destination;
+    Vector3 lastknownLoc;
     Vector3 prePos;
     Vector3[] destinations_path;
     int dest_i = 0;
     float pathCompleted;
+    /* Player hiding */
+    Hide hide_script;
     // Awake is called when the script instance is being loaded.
     private void Awake()
     {
         player = GameObject.Find("Player");
         agent = GetComponent<NavMeshAgent>();
+        agent.speed = speed;
+        chaseSpeed = sprintSpeed;
         prePos = transform.position;
         coolDownTimer = coolDown;
         destinations_path = new[] { new Vector3(36f, 1f, 18.7f), new Vector3(4.1f, 1f, 40.9f), new Vector3(20f, 1f, 4.3f) };
+        GameObject camObject = GameObject.Find("Main Camera");
+        hide_script = camObject.GetComponent<Hide>();
     }
     // Start is called before the first frame update
     void Start()
@@ -42,39 +58,96 @@ public class EnemyMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        isChase = lineOfSightAngle() || checkProximity();
+        isChase = (lineOfSightAngle() || checkProximity()) && !hide_script.isHiding; //Player is in range and not hiding.
+        if (hide_script.isHiding && enemy_state == "Chase")
+        {
+            isChase = true; // Kick the fucker out is they hide during a chase
+        }
         if (isChase)
         {
-            // Add a search algorithm UnityEngine.AI :)
-            /*if (inProximity) 
+            enemy_state = "Chase";
+            agent.speed = chaseSpeed;
+            sprint();
+
+            if (go_to(player.transform.position, enemy_state))
             {
-                transform.LookAt(player.transform);
-            }*/
-            destination = player.transform.position;
-            agent.SetDestination(destination);
-            //pathCompleted = Vector3.Distance(transform.position, destination);
-            pathCompleted = agent.remainingDistance;
-            Debug.Log("Chase " + pathCompleted);
-            if (pathCompleted <= 1)
+                if (hide_script.isHiding)
+                {
+                    // If the player is hiding kick them out
+                    hide_script.get_out();
+                }
+                else
+                {
+                    Debug.Log("Game Over!");
+                    gameOver = true;
+                }
+            }
+            investigate = true;
+            lastknownLoc = player.transform.position;
+        }
+        else if (investigate)
+        {
+            enemy_state = "Investigate";
+            agent.speed = speed;
+            chaseSpeed = sprintSpeed;
+            sprintCoolDown = 10f;
+            if (go_to(lastknownLoc, enemy_state))
             {
-                Debug.Log("Game Over!");
-                gameOver = true;
+                // Cooldown
+                cooldown();
+                if (!inCooldown)
+                {
+                    investigate = false;
+                }
             }
         }
         else
         {
+            enemy_state = "Roam";
             roam();
+        }
+    }
+
+    private bool go_to(Vector3 dest, String state)
+    {
+        // Returns true when the enemy gets stuck or completes the path
+        destination = dest;
+        agent.SetDestination(destination);
+        //pathCompleted = Vector3.Distance(transform.position, destination);
+        pathCompleted = agent.remainingDistance;
+        Debug.Log(state + " " + pathCompleted);
+        if (pathCompleted <= 1 || prePos == transform.position)
+        {
+            return true;
+        }
+        prePos = transform.position;
+        return false;
+    }
+
+    private void sprint()
+    {
+        if (sprintCoolDown > 0)
+        {
+            sprintCoolDown -= Time.deltaTime;
+        }
+        else
+        {
+            if (chaseSpeed == sprintSpeed)
+            {
+                chaseSpeed = speed;
+                sprintCoolDown = 2f; // Catch breath for 2 secs (enemy will walk)
+            }
+            else
+            {
+                chaseSpeed = sprintSpeed;
+                sprintCoolDown = 10f; // Run for 10 secs (enemy will run)
+            }
         }
     }
 
     private void roam_path()
     {
-        destination = destinations_path[dest_i];
-        agent.SetDestination(destination);
-        //pathCompleted = Vector3.Distance(transform.position, destination);
-        pathCompleted = agent.remainingDistance;
-        Debug.Log(pathCompleted);
-        if (pathCompleted < 1)
+        if (go_to(destinations_path[dest_i], enemy_state))
         {
             // Cooldown
             cooldown();
@@ -95,24 +168,14 @@ public class EnemyMovement : MonoBehaviour
         }
         if (isRoam)
         {
-            // Set the destination to that random destination
-            agent.SetDestination(destination);
-            //pathCompleted = Vector3.Distance(transform.position, destination);
-            pathCompleted = agent.remainingDistance;
-            Debug.Log(pathCompleted);
-            if (pathCompleted < 1 || prePos == transform.position)
+            if (go_to(destination, enemy_state))
             {
-                // prePos == currentPos -> just to check if the enemy is stuck.
-                // When the random destination is outside the walls the enemy might get stuck. DO: (simple fix but change this later!)
-                // pathCompleted == 0 -> If the enemy reached the destination compute a new random position 
-                // Cooldown
                 cooldown();
                 if (!inCooldown)
                 {
                     isRoam = false;
                 }
             }
-            prePos = transform.position;
         }
     }
 
