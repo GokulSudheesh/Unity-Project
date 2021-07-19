@@ -19,7 +19,7 @@ public class EnemyMovement : MonoBehaviour
     float proximity;
     bool gameOver = false;
     /* Enemy Sates */
-    string enemy_state;
+    int enemy_state; // 1 -> Chase, 2 -> Investigate, 3 -> Roam
     bool isRoam = false;
     bool isChase = false;
     bool investigate = false;
@@ -59,17 +59,17 @@ public class EnemyMovement : MonoBehaviour
     void Update()
     {
         isChase = (lineOfSightAngle() || checkProximity()) && !hide_script.isHiding; //Player is in range and not hiding.
-        if (hide_script.isHiding && enemy_state == "Chase")
+        if (hide_script.isHiding && enemy_state == 1)
         {
             isChase = true; // Kick the fucker out is they hide during a chase
         }
         if (isChase)
         {
-            enemy_state = "Chase";
+            enemy_state = 1;
             agent.speed = chaseSpeed;
             sprint();
 
-            if (go_to(player.transform.position, enemy_state))
+            if (go_to(player.transform.position, "Chase"))
             {
                 if (hide_script.isHiding)
                 {
@@ -87,11 +87,11 @@ public class EnemyMovement : MonoBehaviour
         }
         else if (investigate)
         {
-            enemy_state = "Investigate";
+            enemy_state = 2;
             agent.speed = speed;
             chaseSpeed = sprintSpeed;
             sprintCoolDown = 10f;
-            if (go_to(lastknownLoc, enemy_state))
+            if (go_to(lastknownLoc, "Investigate"))
             {
                 // Cooldown
                 cooldown();
@@ -103,7 +103,7 @@ public class EnemyMovement : MonoBehaviour
         }
         else
         {
-            enemy_state = "Roam";
+            enemy_state = 3;
             roam();
         }
     }
@@ -147,7 +147,7 @@ public class EnemyMovement : MonoBehaviour
 
     private void roam_path()
     {
-        if (go_to(destinations_path[dest_i], enemy_state))
+        if (go_to(destinations_path[dest_i], "Roam"))
         {
             // Cooldown
             cooldown();
@@ -168,7 +168,7 @@ public class EnemyMovement : MonoBehaviour
         }
         if (isRoam)
         {
-            if (go_to(destination, enemy_state))
+            if (go_to(destination, "Roam"))
             {
                 cooldown();
                 if (!inCooldown)
