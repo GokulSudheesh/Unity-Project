@@ -3,11 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Cinemachine;
 
 public class Hide : MonoBehaviour
 {
     [SerializeField] Camera mainCamera;
+    
     Camera hidingCamera;
+    [SerializeField] CinemachineFreeLook freeLookCam;
 
     public bool isHiding = false;
     private bool guiShow = false;
@@ -20,9 +23,10 @@ public class Hide : MonoBehaviour
     GameObject hide_prompt;
     
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         mainCamera.GetComponent<Camera>().enabled = true;
+        freeLookCam.GetComponent<CinemachineFreeLook>().enabled = true;
         hide_prompt = GameObject.Find("Hide-Prompt");
     }
 
@@ -33,7 +37,7 @@ public class Hide : MonoBehaviour
         Vector3 fwd;
         fwd = transform.TransformDirection(Vector3.forward);
 
-        if(Physics.Raycast(transform.position, fwd, out hit, rayLength))
+        if(Physics.Raycast(player.transform.position, fwd, out hit, rayLength))
         {
             hit_tag = hit.collider.gameObject.name; // Get the name of the object
 
@@ -51,9 +55,10 @@ public class Hide : MonoBehaviour
                     
                     //Change Cameras
                     mainCamera.GetComponent<Camera>().enabled = false;
-        			hidingCamera.GetComponent<Camera>().enabled = true;
-
-        			StartCoroutine(Wait());
+                    freeLookCam.GetComponent<CinemachineFreeLook>().enabled = false;
+                    hidingCamera.GetComponent<Camera>().enabled = true;
+                    
+                    StartCoroutine(Wait());
         		}
         	}
         }
@@ -95,6 +100,7 @@ public class Hide : MonoBehaviour
 
         //Change Cameras
         mainCamera.GetComponent<Camera>().enabled = true;
+        freeLookCam.GetComponent<CinemachineFreeLook>().enabled = true;
         hidingCamera.GetComponent<Camera>().enabled = false;
 
         isHiding = false;
