@@ -15,7 +15,7 @@ public class Hide : MonoBehaviour
     public bool isHiding = false;
     private bool guiShow = false;
     
-    private int rayLength = 10;
+    private float rayLength = 3f;
     private string hit_tag;
     
     [SerializeField] GameObject player;
@@ -35,7 +35,7 @@ public class Hide : MonoBehaviour
     {
         RaycastHit hit;
         Vector3 fwd;
-        fwd = transform.TransformDirection(Vector3.forward);
+        fwd = player.transform.TransformDirection(Vector3.forward);
 
         if(Physics.Raycast(player.transform.position, fwd, out hit, rayLength))
         {
