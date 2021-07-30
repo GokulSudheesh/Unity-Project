@@ -14,15 +14,23 @@ public class EnemyMovement : MonoBehaviour
     //[SerializeField] float maxRoamDist = 25f;
     [SerializeField] float coolDown = 5f;
     [SerializeField] float viewRadius = 15f;
+    //Sound effects
+    [SerializeField] AudioClip lost_sound;
+    [SerializeField] AudioClip found_sound;
+    [SerializeField] AudioClip damage_sound;
+    [SerializeField] AudioClip chase_music;
+    [SerializeField] AudioSource audioSourceMusic;
+    [SerializeField] AudioSource audioSourceEffects;
     float sprintCoolDown = 10f;
     float chaseSpeed;
     float proximity;
     bool gameOver = false;
     /* Enemy Sates */
-    int enemy_state; // 1 -> Chase, 2 -> Investigate, 3 -> Roam
+    int enemy_state; // 1 -> Chase, 2 -> Investigate, 3 -> Check Hiding Spot, 4 -> Roam
     bool isRoam = false;
     bool isChase = false;
     bool investigate = false;
+    bool checkHiding = false;
     /* Player Detection */
     bool inProximity = false;
     bool inRange = false;
@@ -58,13 +66,15 @@ public class EnemyMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        isChase = (lineOfSightAngle() || checkProximity()) && !hide_script.isHiding; //Player is in range and not hiding.
+        agent.isStopped = (enemy_state == 1 && agent.remainingDistance <= 2f); // So that the enemy doent overlap the  player
+        isChase = (lineOfSightAngle(player, "Player") || checkProximity()) && !hide_script.isHiding; //Player is in range and not hiding.
         if (hide_script.isHiding && enemy_state == 1)
         {
             isChase = true; // Kick the fucker out is they hide during a chase
         }
         if (isChase)
         {
+            playMusic(chase_music);
             enemy_state = 1;
             agent.speed = chaseSpeed;
             sprint();
@@ -74,10 +84,14 @@ public class EnemyMovement : MonoBehaviour
                 if (hide_script.isHiding)
                 {
                     // If the player is hiding kick them out
+                    playAudio(found_sound);
+                    //AudioSource.PlayClipAtPoint(found_sound, transform.position);
                     hide_script.get_out();
                 }
                 else
                 {
+                    playAudio(damage_sound);
+                    //AudioSource.PlayClipAtPoint(damage_sound, transform.position);
                     Debug.Log("Game Over!");
                     gameOver = true;
                 }
@@ -86,27 +100,105 @@ public class EnemyMovement : MonoBehaviour
             lastknownLoc = player.transform.position;
         }
         else if (investigate)
-        {
+        {         
             enemy_state = 2;
             agent.speed = speed;
             chaseSpeed = sprintSpeed;
             sprintCoolDown = 10f;
             if (go_to(lastknownLoc, "Investigate"))
-            {
+            {                
                 // Cooldown
                 cooldown();
                 if (!inCooldown)
                 {
+                    if (hide_script.isHiding)
+                    {                        
+                        checkHiding = true;                        
+                    }
+                    else
+                    {
+                        //AudioSource.PlayClipAtPoint(lost_sound, transform.position);
+                        //StartCoroutine(FadeOut(audioSourceMusic, 0.1f));
+                        stopMusic();
+                    }
                     investigate = false;
                 }
             }
         }
-        else
+        else if (checkHiding)
         {
             enemy_state = 3;
+            String hit_tag = cast_ray();
+            if (hit_tag != "")
+            {
+                if (go_to(GameObject.Find(hit_tag).transform.position, "Hiding: "+hit_tag))
+                {
+                    if (hit_tag == hide_script.hiding_id)
+                    {
+                        playAudio(found_sound);
+                        //AudioSource.PlayClipAtPoint(found_sound, transform.position);
+                        // If the player is hiding in the random hiding spot that enemy went to:
+                        hide_script.get_out(); // Kick the fucker out
+                    }
+                    else
+                    {
+                        //AudioSource.PlayClipAtPoint(lost_sound, transform.position);
+                        //StartCoroutine(FadeOut(audioSourceMusic, 0.1f));
+                        stopMusic();
+                    }
+                }
+            }            
+            checkHiding = false;
+        }
+        else
+        {
+            //StartCoroutine(FadeOut(audioSourceMusic, 0.1f));
+            stopMusic();
+            enemy_state = 4;
             roam();
         }
     }
+
+    private void playAudio(AudioClip audio)
+    {
+        if (!audioSourceEffects.isPlaying)
+        {
+            audioSourceEffects.PlayOneShot(audio, 1f);
+        }
+    }
+
+    private void playMusic(AudioClip audio)
+    {
+        if (!audioSourceMusic.isPlaying)
+        {
+            audioSourceMusic.PlayOneShot(audio, 0.5f);
+        }
+    }
+
+    private void stopMusic()
+    {
+        if (audioSourceMusic.isPlaying)
+        {
+            audioSourceMusic.Stop();
+            playAudio(lost_sound);
+        }
+    }
+
+    public static IEnumerator FadeOut(AudioSource audioSource, float FadeTime)
+    {
+        float startVolume = audioSource.volume;
+
+        while (audioSource.volume > 0)
+        {
+            audioSource.volume -= startVolume * Time.deltaTime / FadeTime;
+
+            yield return null;
+        }
+
+        audioSource.Stop();
+        audioSource.volume = startVolume;
+    }
+
 
     private bool go_to(Vector3 dest, String state)
     {
@@ -198,7 +290,7 @@ public class EnemyMovement : MonoBehaviour
         proximity = Vector3.Distance(transform.position, player.transform.position);
         if (proximity < viewRadius)
         {
-            inProximity = hidden();
+            inProximity = visible(player);
             return inProximity;
         }
         else
@@ -208,11 +300,11 @@ public class EnemyMovement : MonoBehaviour
         }
     }
 
-    private bool hidden()
+    private bool visible(GameObject obj)
     {
         // Blocked by enemy's vision (walls / other obstacles)
         NavMeshHit hit;
-        if (!agent.Raycast(player.transform.position, out hit))
+        if (!agent.Raycast(obj.transform.position, out hit))
         {
             //print("Visible");
             return true;
@@ -224,13 +316,34 @@ public class EnemyMovement : MonoBehaviour
         }
     }
 
-    private bool lineOfSightAngle()
+    private String cast_ray()
     {
-        Vector3 direction = player.transform.position - transform.position;
+        // Get the names of the gameObjects in field of the enemy
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, 5f);
+        var hide_list = new ArrayList();
+        // Get the objects with Hide as the starting name
+        foreach (var hitCollider in hitColliders)
+        {
+            String hit_tag = hitCollider.gameObject.name;
+            if(hit_tag.Split('-')[0] == "Hide" && lineOfSightAngle(GameObject.Find(hit_tag), hit_tag))
+            {
+                hide_list.Add(hit_tag);
+            }
+        }
+        if (hide_list.Count == 0)
+        {
+            return "";
+        }
+        return (String)hide_list[Random.Range(0, hide_list.Count)];
+    }
+
+    private bool lineOfSightAngle(GameObject obj, String name)
+    {
+        Vector3 direction = obj.transform.position - transform.position;
         RaycastHit hit;
         inRange = Vector3.Angle(direction, transform.forward) <= 80f;
 
-        if (Physics.Raycast(transform.position, direction, out hit) && hit.transform.gameObject.name == "Player" && inRange)
+        if (Physics.Raycast(transform.position, direction, out hit) && hit.transform.gameObject.name == name && inRange)
         {
             //print("Visible");
             return true;

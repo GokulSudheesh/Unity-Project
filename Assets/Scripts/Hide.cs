@@ -21,6 +21,7 @@ public class Hide : MonoBehaviour
     [SerializeField] GameObject player;
 
     GameObject hide_prompt;
+    public String hiding_id; // Name of the gameObject that the player is currently hiding in
     
     // Start is called before the first frame update
     void Awake()
@@ -52,7 +53,9 @@ public class Hide : MonoBehaviour
                     hidingCamera = getCam(hit_tag.Split('-')[1]);
                     //Disable Player
                     player.SetActive(false);
-                    
+                    // Set the hiding id
+                    hiding_id = hit_tag;
+
                     //Change Cameras
                     mainCamera.GetComponent<Camera>().enabled = false;
                     freeLookCam.GetComponent<CinemachineFreeLook>().enabled = false;
