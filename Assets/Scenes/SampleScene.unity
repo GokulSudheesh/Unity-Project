@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657844, g: 0.49641222, b: 0.57481694, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -3768,7 +3768,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 422462774}
-  m_LocalRotation: {x: 0.14760177, y: 0.0011974202, z: -0.00017869874, w: 0.98904616}
+  m_LocalRotation: {x: 0.14760177, y: 0.0011974032, z: -0.0001786962, w: 0.98904616}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -5296,7 +5296,7 @@ Mesh:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: pb_Mesh18386
+  m_Name: pb_Mesh18480
   serializedVersion: 10
   m_SubMeshes:
   - serializedVersion: 2
@@ -5533,7 +5533,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
-  m_LocalRotation: {x: 0.12958714, y: 0.0012004557, z: -0.00015688656, w: 0.9915673}
+  m_LocalRotation: {x: 0.12958714, y: 0.0012004727, z: -0.0001568888, w: 0.9915673}
   m_LocalPosition: {x: 27.15363, y: 73.80317, z: 51.16901}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
@@ -9427,7 +9427,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1236278509}
-  m_LocalRotation: {x: 0.1115773, y: 0.0012031301, z: -0.00013508563, w: 0.99375504}
+  m_LocalRotation: {x: 0.1115773, y: 0.0012030948, z: -0.00013508165, w: 0.99375504}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -27278,7 +27278,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2015119040}
-  m_LocalRotation: {x: 0.1295871, y: 0.0012004555, z: -0.00015688653, w: 0.9915673}
+  m_LocalRotation: {x: 0.1295871, y: 0.0012004726, z: -0.00015688872, w: 0.9915673}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -27577,7 +27577,7 @@ NavMeshAgent:
   m_Speed: 3.5
   m_Acceleration: 8
   avoidancePriority: 50
-  m_AngularSpeed: 120
+  m_AngularSpeed: 200
   m_StoppingDistance: 0
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
