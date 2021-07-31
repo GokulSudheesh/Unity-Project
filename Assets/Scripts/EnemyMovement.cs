@@ -319,7 +319,7 @@ public class EnemyMovement : MonoBehaviour
     private String cast_ray()
     {
         // Get the names of the gameObjects in field of the enemy
-        Collider[] hitColliders = Physics.OverlapSphere(transform.position, 5f);
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, 10f);
         var hide_list = new ArrayList();
         // Get the objects with Hide as the starting name
         foreach (var hitCollider in hitColliders)
