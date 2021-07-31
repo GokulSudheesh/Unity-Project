@@ -16,7 +16,6 @@ public class ThirdPersonMovementScript : MonoBehaviour
     [SerializeField] private float jumpHeight = 1.0f;
     private float gravityValue = -9.81f;
     private Vector3 playerVelocity;
-    private float player_pos_Y; // So that the player lands properly (1.5 units above the surface with tag "Ground")
     // Sprinting
     [SerializeField] private float sprintTime;
     private float sprintingTimer;
@@ -39,7 +38,7 @@ public class ThirdPersonMovementScript : MonoBehaviour
     {
         //Jump https://docs.unity3d.com/ScriptReference/CharacterController.Move.html
         onGround = controller.isGrounded;
-        if (onGround && playerVelocity.y < player_pos_Y)
+        if (onGround && playerVelocity.y < 0)
         {
             playerVelocity.y = 0f;
         }
@@ -91,13 +90,5 @@ public class ThirdPersonMovementScript : MonoBehaviour
         //End of code
         }
         playerStat.text = sprintingTimer.ToString();
-    }
-    private void OnCollisionEnter(Collision collision)
-    {
-        //Notice you have to create a tag for this method. You can name it the way you want.
-        if (collision.gameObject.CompareTag("Ground"))
-        {
-            player_pos_Y = collision.gameObject.transform.position.y + 2.5f;
-        }
     }
 }
