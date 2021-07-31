@@ -9,28 +9,73 @@ public class ThirdPersonMovementScript : MonoBehaviour
 
     public CharacterController controller;
     public Transform cam;
-    
-    public float speed = 6f;
-    
+
+    [SerializeField] private float speed = 6f;
+    // Jumping
+    private bool onGround;
+    [SerializeField] private float jumpHeight = 1.0f;
+    private float gravityValue = -9.81f;
+    private Vector3 playerVelocity;
+    private float player_pos_Y; // So that the player lands properly (1.5 units above the surface with tag "Ground")
+    // Sprinting
+    [SerializeField] private float sprintTime;
+    private float sprintingTimer;
+    int acceleration; // speed * acceleration while sprinting
+    public Text playerStat;
+
     public float turnSmoothTime = 0.1f;
     float turnSmoothVelocity; 
     //**********************
     
     void Awake()
     {
-        
+        onGround = true;
+        // Set the sprint cool down
+        sprintingTimer = sprintTime;
     }
 
     // Update is called once per frame
     void Update()
     {
-    
-    
-    	//Code for character movement, rotation and camera-direction-oriented movement
-    	
+        //Jump https://docs.unity3d.com/ScriptReference/CharacterController.Move.html
+        onGround = controller.isGrounded;
+        if (onGround && playerVelocity.y < player_pos_Y)
+        {
+            playerVelocity.y = 0f;
+        }
+        // Changes the height position of the player..
+        if (Input.GetButtonDown("Jump") && onGround)
+        {
+            playerVelocity.y += Mathf.Sqrt(jumpHeight * -3.0f * gravityValue);
+        }
+        playerVelocity.y += gravityValue * Time.deltaTime;
+        controller.Move(playerVelocity * Time.deltaTime);
+
+
+        //Code for character movement, rotation and camera-direction-oriented movement
+
         float horizontal = Input.GetAxisRaw("Horizontal");
         float vertical = Input.GetAxisRaw("Vertical");
-        
+
+        // Sprint
+        if (Input.GetKey(KeyCode.LeftShift))
+        {
+            sprintingTimer -= (sprintingTimer <= 0) ? 0 : Time.deltaTime;
+            if (sprintingTimer > 0)
+            {
+                acceleration = 2;
+            }
+            else
+            {
+                acceleration = 1;
+            }
+        }
+        else
+        {
+            acceleration = 1;
+            sprintingTimer += (sprintingTimer >= sprintTime) ? 0 : (2 * Time.deltaTime);
+        }
+
         Vector3 direction = new Vector3(horizontal, 0f, vertical).normalized;
         
         if(direction.magnitude >= 0.1f)
@@ -40,10 +85,19 @@ public class ThirdPersonMovementScript : MonoBehaviour
         	transform.rotation = Quaternion.Euler(0f, angle, 0f); 
         	
         	Vector3 moveDirection = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
-        	controller.Move(moveDirection.normalized * speed * Time.deltaTime);
+        	controller.Move(moveDirection.normalized * acceleration * speed * Time.deltaTime);
         
         
         //End of code
+        }
+        playerStat.text = sprintingTimer.ToString();
+    }
+    private void OnCollisionEnter(Collision collision)
+    {
+        //Notice you have to create a tag for this method. You can name it the way you want.
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            player_pos_Y = collision.gameObject.transform.position.y + 2.5f;
         }
     }
 }

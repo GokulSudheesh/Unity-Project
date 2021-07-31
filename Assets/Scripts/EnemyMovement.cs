@@ -95,8 +95,8 @@ public class EnemyMovement : MonoBehaviour
                     Debug.Log("Game Over!");
                     gameOver = true;
                 }
+                investigate = true;
             }
-            investigate = true;
             lastknownLoc = player.transform.position;
         }
         else if (investigate)
